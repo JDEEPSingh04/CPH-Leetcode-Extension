@@ -43,99 +43,70 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const axios_1 = __importDefault(require("axios"));
 const LANGUAGE_BOILERPLATES = {
-    C: {
-        extension: 'c',
-        template: `#include <stdio.h>
-#include <stdlib.h>
-
-// Function prototype
-// TODO: Modify the function parameters and return type according to the problem
-
-int main() {
-    // Read test cases from file
-    // TODO: Implement test case reading logic
-    
-    // Call your function and verify the output
-    
-    return 0;
-}
-`,
-    },
     'C++': {
         extension: 'cpp',
-        template: `#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
-
-class Solution {
-public:
-    // TODO: Modify the function parameters and return type according to the problem
-    
-};
-
-int main() {
-    Solution solution;
-    
-    // Read test cases from file
-    // TODO: Implement test case reading logic
-    
-    // Call your solution and verify the output
-    
-    return 0;
-}
-`,
+        getLangSlug: () => 'cpp',
     },
-    Java: {
-        extension: 'java',
-        template: `import java.util.*;
-import java.io.*;
-
-class Solution {
-    // TODO: Modify the function parameters and return type according to the problem
-    
-}
-
-public class Main {
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        
-        // Read test cases from file
-        // TODO: Implement test case reading logic
-        
-        // Call your solution and verify the output
+};
+async function fetchCodeSnippet(titleSlug, lang) {
+    const query = `
+    query questionData($titleSlug: String!) {
+      question(titleSlug: $titleSlug) {
+        codeSnippets {
+          lang
+          langSlug
+          code
+        }
+      }
+    }
+  `;
+    const variables = {
+        titleSlug: titleSlug,
+    };
+    try {
+        const response = await axios_1.default.post('https://leetcode.com/graphql', {
+            query,
+            variables,
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'VSCode-LeetCode-Helper/1.0',
+            },
+        });
+        if (!response.data.data?.question?.codeSnippets) {
+            throw new Error('Failed to fetch code snippets from LeetCode');
+        }
+        const snippet = response.data.data.question.codeSnippets.find((s) => s.langSlug === lang);
+        if (!snippet) {
+            throw new Error(`No code snippet found for language: ${lang}`);
+        }
+        return snippet.code;
+    }
+    catch (error) {
+        if (axios_1.default.isAxiosError(error)) {
+            throw new Error(`LeetCode API error: ${error.response?.data?.errors?.[0]?.message || error.message}`);
+        }
+        throw error;
     }
 }
-`,
-    },
-    Python: {
-        extension: 'py',
-        template: `class Solution:
-    # TODO: Modify the function parameters and return type according to the problem
-    pass
-
-def read_test_case(input_file):
-    # TODO: Implement test case reading logic
-    pass
-
-def main():
-    solution = Solution()
-    
-    # Read test cases and verify output
-    # TODO: Implement test case verification
-    
-if __name__ == "__main__":
-    main()
-`,
-    },
-};
+async function createSolutionFile(titleSlug, language, problemPath) {
+    const { extension, getLangSlug } = LANGUAGE_BOILERPLATES[language];
+    const solutionFile = path.join(problemPath, `solution.${extension}`);
+    try {
+        const codeSnippet = await fetchCodeSnippet(titleSlug, getLangSlug());
+        await fs.promises.writeFile(solutionFile, codeSnippet);
+    }
+    catch (error) {
+        console.error('Failed to fetch code snippet:', error);
+        throw error;
+    }
+}
 function activate(context) {
     console.log('LeetCode Helper is now active!');
     let fetchProblem = vscode.commands.registerCommand('LH.fetchProblem', async () => {
         try {
             const titleSlug = await vscode.window.showInputBox({
                 prompt: 'Enter the LeetCode problem slug',
-                placeHolder: 'two-sum',
             });
             if (!titleSlug) {
                 return;
@@ -161,7 +132,7 @@ function activate(context) {
             ensureDirectoryExists(testCasesPath);
             const examples = extractExamplesFromGraphQL(data.question.content);
             await saveTestCases(titleSlug, examples, testCasesPath);
-            // Create solution file with boilerplate code
+            // Create solution file with boilerplate code from LeetCode
             await createSolutionFile(titleSlug, selectedLanguage, problemPath);
             vscode.window.showInformationMessage(`Problem setup completed successfully! Check the '${titleSlug}' directory.`);
             // Open the solution file
@@ -177,12 +148,6 @@ function activate(context) {
     });
     context.subscriptions.push(fetchProblem);
 }
-async function createSolutionFile(titleSlug, language, problemPath) {
-    const { extension, template } = LANGUAGE_BOILERPLATES[language];
-    const solutionFile = path.join(problemPath, `solution.${extension}`);
-    await fs.promises.writeFile(solutionFile, template);
-}
-// ... (rest of the previous code remains the same: fetchLeetCodeQuestion, extractExamplesFromGraphQL, etc.)
 async function fetchLeetCodeQuestion(titleSlug) {
     const query = `
     query questionData($titleSlug: String!) {
