@@ -190,15 +190,15 @@ function extractExamplesFromGraphQL(content) {
     // Array of regex patterns to try, from most specific to most general
     const regexPatterns = [
         // Pattern 1: Standard LeetCode format with <pre> tags
-        /<pre>\s*(?:<strong>)?Input:(?:<\/strong>)?\s*(.*?)\s*(?:<strong>)?Output:(?:<\/strong>)?\s*(.*?)\s*<\/pre>/gi,
+        /<pre>\s*(?:<strong>)?Input:(?:<\/strong>)?\s*(.*?)\s*(?:<strong>)?Output:(?:<\/strong>)?\s*(.*?)(?:\s*(?:<strong>)?Explanation:.*?)?<\/pre>/gi,
         // Pattern 2: Format with <strong> tags but no <pre>
-        /<strong>Input:<\/strong>\s*(.*?)\s*<strong>Output:<\/strong>\s*(.*?)(?=<strong>|$)/gi,
+        /<strong>Input:<\/strong>\s*(.*?)\s*<strong>Output:<\/strong>\s*(.*?)(?:\s*(?:<strong>)?Explanation:.*?)?(?=<strong>|$)/gi,
         // Pattern 3: Simple "Input:" and "Output:" format
-        /Input:\s*(.*?)\s*Output:\s*(.*?)(?=Input:|$)/gi,
+        /Input:\s*(.*?)\s*Output:\s*(.*?)(?:\s*Explanation:.*?)?(?=Input:|$)/gi,
         // Pattern 4: Format with Example number
-        /Example\s*\d+:\s*(?:<strong>)?Input:(?:<\/strong>)?\s*(.*?)\s*(?:<strong>)?Output:(?:<\/strong>)?\s*(.*?)(?=Example|\s*$)/gi,
+        /Example\s*\d+:\s*(?:<strong>)?Input:(?:<\/strong>)?\s*(.*?)\s*(?:<strong>)?Output:(?:<\/strong>)?\s*(.*?)(?:\s*(?:<strong>)?Explanation:.*?)?(?=Example|\s*$)/gi,
         // Pattern 5: Format with <p> tags
-        /<p>\s*(?:<strong>)?Input:(?:<\/strong>)?\s*(.*?)\s*(?:<strong>)?Output:(?:<\/strong>)?\s*(.*?)\s*<\/p>/gi,
+        /<p>\s*(?:<strong>)?Input:(?:<\/strong>)?\s*(.*?)\s*(?:<strong>)?Output:(?:<\/strong>)?\s*(.*?)(?:\s*(?:<strong>)?Explanation:.*?)?<\/p>/gi,
     ];
     for (const regex of regexPatterns) {
         let match;
