@@ -180,14 +180,20 @@ async function fetchLeetCodeQuestion(titleSlug) {
 }
 function extractExamplesFromGraphQL(content) {
     const examples = [];
-    // First, clean up the content by normalizing line endings and spaces
+    // Clean up the content
     content = content
         .replace(/\\n/g, '\n')
         .replace(/\\t/g, ' ')
         .replace(/\s+/g, ' ')
         .replace(/&nbsp;/g, ' ')
         .trim();
-    // Array of regex patterns to try, from most specific to most general
+    // Extract numbers function
+    const extractNumbers = (str) => {
+        // Match all numbers (including negative and decimals)
+        const matches = str.match(/-?\d+\.?\d*/g);
+        return matches ? matches.map(Number) : [];
+    };
+    // Array of regex patterns to try
     const regexPatterns = [
         // Pattern 1: Standard LeetCode format with <pre> tags
         /<pre>\s*(?:<strong>)?Input:(?:<\/strong>)?\s*(.*?)\s*(?:<strong>)?Output:(?:<\/strong>)?\s*(.*?)(?:\s*(?:<strong>)?Explanation:.*?)?<\/pre>/gi,
@@ -203,15 +209,15 @@ function extractExamplesFromGraphQL(content) {
     for (const regex of regexPatterns) {
         let match;
         while ((match = regex.exec(content)) !== null) {
-            const input = match[1]
+            const inputStr = match[1]
                 .trim()
-                .replace(/<[^>]*>/g, '') // Remove any HTML tags
-                .replace(/&quot;/g, '"') // Replace HTML entities
+                .replace(/<[^>]*>/g, '') // Remove HTML tags
+                .replace(/&quot;/g, '"')
                 .replace(/&apos;/g, "'")
                 .replace(/&lt;/g, '<')
                 .replace(/&gt;/g, '>')
                 .replace(/&amp;/g, '&');
-            const output = match[2]
+            const outputStr = match[2]
                 .trim()
                 .replace(/<[^>]*>/g, '')
                 .replace(/&quot;/g, '"')
@@ -219,9 +225,12 @@ function extractExamplesFromGraphQL(content) {
                 .replace(/&lt;/g, '<')
                 .replace(/&gt;/g, '>')
                 .replace(/&amp;/g, '&');
-            if (input && output) {
-                // Only add if both input and output are non-empty
-                examples.push({ input, output });
+            if (inputStr && outputStr) {
+                const input = extractNumbers(inputStr);
+                const output = extractNumbers(outputStr);
+                if (input.length > 0 || output.length > 0) {
+                    examples.push({ input, output });
+                }
             }
         }
         // If we found any examples with current pattern, stop trying other patterns
@@ -229,9 +238,8 @@ function extractExamplesFromGraphQL(content) {
             break;
         }
     }
-    // If no examples found using regex, try to get from exampleTestcases
     if (examples.length === 0) {
-        console.warn('No examples found using regex patterns. Content might have a different format.');
+        console.warn('No numerical examples found using regex patterns. Content might have a different format.');
     }
     return examples;
 }
@@ -246,8 +254,11 @@ async function saveTestCases(titleSlug, examples, testCasesPath) {
     const writePromises = examples.map(async (example, index) => {
         const inputPath = path.join(problemPath, `input_${index + 1}.txt`);
         const outputPath = path.join(problemPath, `output_${index + 1}.txt`);
-        await fs.promises.writeFile(inputPath, example.input);
-        await fs.promises.writeFile(outputPath, example.output);
+        // Convert arrays to space-separated numbers
+        const inputString = example.input.join(' ');
+        const outputString = example.output.join(' ');
+        await fs.promises.writeFile(inputPath, inputString);
+        await fs.promises.writeFile(outputPath, outputString);
     });
     await Promise.all(writePromises);
 }
