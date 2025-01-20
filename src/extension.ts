@@ -14,6 +14,7 @@ import { LANGUAGE_BOILERPLATES } from './languageConfig'
 import { createSolutionFile } from './runTestCases'
 import { runAllTestCases } from './runTestCases'
 import { addTestCase } from './addTestCase'
+import { SidebarProvider } from './SidebarProvider'
 
 // This method is called when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -121,11 +122,26 @@ export function activate(context: vscode.ExtensionContext) {
     }
   )
 
+  // Register the command to add a new test case
   let addTestCaseCommand = vscode.commands.registerCommand(
     'CPH.addTestCase',
     async () => {
       await addTestCase(context)
     }
+  )
+
+  // Create instance of SidebarProvider for managing webview UI
+  // extensionUri is used to load resources and manage webview content
+  const sidebarProvider = new SidebarProvider(context.extensionUri)
+
+  // Register the webview provider with VS Code
+  // This allows the sidebar to be shown in the activity bar
+  // Add to subscriptions for proper cleanup when extension deactivates
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      SidebarProvider.viewType, // Unique identifier for the view
+      sidebarProvider // Instance that provides the webview content
+    )
   )
 
   // Add the commands to the extension's subscriptions

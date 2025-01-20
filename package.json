@@ -9,23 +9,67 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "CPH.fetchProblem",
-        "title": "CPH: Fetch Test Cases"
+        "title": "Fetch Test Cases",
+        "icon": "$(cloud-download)",
+        "category": "CPH"
       },
       {
         "command": "CPH.runTestCases",
-        "title": "CPH: Run Test Cases"
+        "title": "Run Test Cases",
+        "icon": "$(play)",
+        "category": "CPH"
       },
       {
         "command": "CPH.addTestCase",
-        "title": "CPH: Add Test Case"
+        "title": "Add Test Case",
+        "icon": "$(add)",
+        "category": "CPH"
       }
-    ]
+    ],
+    "keybindings": [
+      {
+        "command": "CPH.fetchProblem",
+        "key": "cmd+shift+f"
+      },
+      {
+        "command": "CPH.runTestCases",
+        "key": "cmd+shift+r",
+        "when": "resourceFilename =~ /solution\\.(cpp|py|java|js)$/"
+      },
+      {
+        "command": "CPH.addTestCase",
+        "key": "cmd+shift+a",
+        "when": "resourceFilename =~ /solution\\.(cpp|py|java|js)$/"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cph-sidebar",
+          "title": "LeetCode Helper",
+          "icon": "resources/leetcode.svg"
+        }
+      ]
+    },
+    "views": {
+      "cph-sidebar": [
+        {
+          "type": "webview",
+          "id": "cph-commands",
+          "name": "Commands",
+          "icon": "resources/leetcode.svg",
+          "contextualTitle": "LeetCode Helper"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

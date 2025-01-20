@@ -45,6 +45,10 @@ async function addTestCase(context) {
         if (!currentFile) {
             throw new Error('No file is currently open');
         }
+        // Check if it's a solution file
+        if (!currentFile.match(/solution\.(cpp|py|java|js)$/)) {
+            throw new Error('This command can only be used in solution files');
+        }
         // Get problem directory
         const problemPath = path.dirname(currentFile);
         const testCasesPath = path.join(problemPath, 'test_cases');

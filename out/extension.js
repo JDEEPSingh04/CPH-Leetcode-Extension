@@ -45,6 +45,7 @@ const languageConfig_1 = require("./languageConfig");
 const runTestCases_1 = require("./runTestCases");
 const runTestCases_2 = require("./runTestCases");
 const addTestCase_1 = require("./addTestCase");
+const SidebarProvider_1 = require("./SidebarProvider");
 // This method is called when the extension is activated
 function activate(context) {
     console.log('LeetCode Helper is now active!');
@@ -114,9 +115,19 @@ function activate(context) {
     let runTestCases = vscode.commands.registerCommand('CPH.runTestCases', async () => {
         await (0, runTestCases_2.runAllTestCases)(context);
     });
+    // Register the command to add a new test case
     let addTestCaseCommand = vscode.commands.registerCommand('CPH.addTestCase', async () => {
         await (0, addTestCase_1.addTestCase)(context);
     });
+    // Create instance of SidebarProvider for managing webview UI
+    // extensionUri is used to load resources and manage webview content
+    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
+    // Register the webview provider with VS Code
+    // This allows the sidebar to be shown in the activity bar
+    // Add to subscriptions for proper cleanup when extension deactivates
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider(SidebarProvider_1.SidebarProvider.viewType, // Unique identifier for the view
+    sidebarProvider // Instance that provides the webview content
+    ));
     // Add the commands to the extension's subscriptions
     context.subscriptions.push(fetchProblem);
 }
