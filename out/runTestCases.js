@@ -45,6 +45,10 @@ const util_1 = require("util");
 const languageConfig_1 = require("./languageConfig");
 // Convert exec to promise-based function
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
+// To get the file path wrapped in quotes if needed, otherwise returns the original path
+function wrapPath(filePath) {
+    return filePath.includes(' ') ? `"${filePath}"` : filePath;
+}
 async function createSolutionFile(titleSlug, language, problemPath) {
     try {
         // Get language-specific configuration
@@ -109,63 +113,81 @@ async function compareTestCases(problemPath) {
 async function compileAndRun(problemPath, language) {
     const config = (0, languageConfig_1.getLanguageConfig)(language);
     const solutionFile = path.join(problemPath, `solution.${config.extension}`);
-    // Compile the solution if language requires compilation
-    if (config.compile && config.compileCommand) {
+    const wrappedSolutionFile = wrapPath(solutionFile);
+    // For C++, we need to handle the output file path specially
+    if (language === 'cpp') {
+        const outputFile = `${solutionFile}.out`;
+        const wrappedOutputFile = wrapPath(outputFile);
+        if (config.compile) {
+            try {
+                const compileCommand = `g++ -std=c++17 ${wrappedSolutionFile} -o ${wrappedOutputFile}`;
+                await execAsync(compileCommand);
+            }
+            catch (error) {
+                throw new Error(`Compilation failed: ${error}`);
+            }
+        }
         try {
-            await execAsync(config.compileCommand(solutionFile));
+            await execAsync(wrappedOutputFile, {
+                cwd: problemPath,
+            });
         }
         catch (error) {
-            throw new Error(`Compilation failed: ${error}`);
+            throw new Error(`Execution failed: ${error}`);
         }
     }
-    // Run the program from the problem directory
-    try {
-        const runCommand = config.runCommand(solutionFile);
-        await execAsync(runCommand, {
-            cwd: problemPath, // Set working directory to problem path
-        });
-    }
-    catch (error) {
-        throw new Error(`Execution failed: ${error}`);
+    else {
+        if (config.compile && config.compileCommand) {
+            try {
+                const compileCommand = config.compileCommand(wrappedSolutionFile);
+                await execAsync(compileCommand);
+            }
+            catch (error) {
+                throw new Error(`Compilation failed: ${error}`);
+            }
+        }
+        try {
+            const runCommand = config.runCommand(wrappedSolutionFile);
+            await execAsync(runCommand, {
+                cwd: problemPath,
+            });
+        }
+        catch (error) {
+            throw new Error(`Execution failed: ${error}`);
+        }
     }
 }
 // Main function to run all test cases for the current problem
 async function runAllTestCases(context) {
     try {
-        // Validate workspace and file setup
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
             throw new Error('No workspace folder open');
         }
-        // Get current problem directory
         const currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
         if (!currentFile) {
             throw new Error('No file is currently open');
         }
         const problemPath = path.dirname(currentFile);
         const solutionFile = path.basename(currentFile);
-        const language = solutionFile.split('.').pop() || '';
-        // Show progress indicator
+        const fileExtension = solutionFile.split('.').pop() || '';
+        // Get the proper language from the file extension
+        const language = (0, languageConfig_1.getLanguageFromExtension)(fileExtension);
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Running test cases...',
             cancellable: false,
         }, async (progress) => {
-            // Compile and run the solution
             progress.report({ message: 'Compiling and running solution...' });
             await compileAndRun(problemPath, language);
-            // Compare test cases
             progress.report({ message: 'Comparing results...' });
             const results = await compareTestCases(problemPath);
-            // Display results
             const totalTests = results.length;
             const passedTests = results.filter((r) => r.passed).length;
-            // Show detailed results in output channel
             const outputChannel = vscode.window.createOutputChannel('LeetCode Test Results');
             outputChannel.clear();
             outputChannel.appendLine(`Test Results Summary:`);
             outputChannel.appendLine(`Passed: ${passedTests}/${totalTests}\n`);
-            // Display individual test results
             results.forEach((result) => {
                 outputChannel.appendLine(`Test Case ${result.testCase}: ${result.passed ? 'PASSED' : 'FAILED'}`);
                 if (!result.passed) {
@@ -175,7 +197,6 @@ async function runAllTestCases(context) {
                 outputChannel.appendLine('');
             });
             outputChannel.show();
-            // Show summary notification
             const message = `${passedTests}/${totalTests} test cases passed`;
             if (passedTests === totalTests) {
                 vscode.window.showInformationMessage(`✅ All test cases passed! ${message}`);
@@ -186,7 +207,6 @@ async function runAllTestCases(context) {
         });
     }
     catch (error) {
-        // Handle and display any errors
         if (error instanceof Error) {
             vscode.window.showErrorMessage(`Error running test cases: ${error.message}`);
         }

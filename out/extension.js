@@ -119,8 +119,7 @@ function activate(context) {
     let addTestCaseCommand = vscode.commands.registerCommand('CPH.addTestCase', async () => {
         await (0, addTestCase_1.addTestCase)(context);
     });
-    // Create instance of SidebarProvider for managing webview UI
-    // extensionUri is used to load resources and manage webview content
+    // Create instance of SidebarProvider for managing webview UI extensionUri is used to load resources and manage webview content
     const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
     // Register the webview provider with VS Code
     // This allows the sidebar to be shown in the activity bar

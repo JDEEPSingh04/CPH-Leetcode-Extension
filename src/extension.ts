@@ -130,8 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   )
 
-  // Create instance of SidebarProvider for managing webview UI
-  // extensionUri is used to load resources and manage webview content
+  // Create instance of SidebarProvider for managing webview UI extensionUri is used to load resources and manage webview content
   const sidebarProvider = new SidebarProvider(context.extensionUri)
 
   // Register the webview provider with VS Code

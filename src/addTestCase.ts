@@ -35,6 +35,7 @@ export async function addTestCase(context: vscode.ExtensionContext) {
       throw new Error('No input provided')
     }
 
+    // Get expected output
     const output = await vscode.window.showInputBox({
       prompt: 'Enter expected output numbers (space-separated)',
       placeHolder: 'e.g., 3 4',

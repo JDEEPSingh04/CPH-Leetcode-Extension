@@ -1,46 +1,18 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LANGUAGE_BOILERPLATES = void 0;
+exports.getLanguageFromExtension = getLanguageFromExtension;
 exports.isLanguageSupported = isLanguageSupported;
 exports.getLanguageConfig = getLanguageConfig;
 exports.getFileExtension = getFileExtension;
 exports.getCompileCommand = getCompileCommand;
 exports.getRunCommand = getRunCommand;
-// Import necessary modules from VS Code API and Node.js
-const path = __importStar(require("path"));
+// Mapping of file extensions to language identifiers  
+const EXTENSION_TO_LANGUAGE = {
+    cpp: 'cpp',
+    py: 'python',
+    js: 'javascript',
+};
 /**
  * Configuration for all supported programming languages
  * Each language defines:
@@ -141,7 +113,7 @@ int main() {
         extension: 'py',
         getLangSlug: () => 'python',
         compile: false,
-        runCommand: (filepath) => `python ${filepath}`,
+        runCommand: (filepath) => `python3 ${filepath}`,
         template: `import os
 import json
 
@@ -208,86 +180,6 @@ def main():
 if __name__ == "__main__":
     main()`,
     },
-    // Java Configuration
-    java: {
-        extension: 'java',
-        getLangSlug: () => 'java',
-        compile: true,
-        compileCommand: (filepath) => `javac ${filepath}`,
-        runCommand: (filepath) => `java -cp ${path.dirname(filepath)} Solution`,
-        template: `import java.io.*;
-import java.util.*;
-
-public class Solution {
-    // Your solution code goes here
-    
-    public static void runTestCase(int testNumber) {
-        String inputPath = "./test_cases/input_" + testNumber + ".txt";
-        
-        try {
-            // Read input
-            BufferedReader reader = new BufferedReader(new FileReader(inputPath));
-            
-            /* Example for reading numbers:
-            String line = reader.readLine();
-            String[] parts = line.trim().split("\\s+");
-            int[] numbers = Arrays.stream(parts)
-                                .mapToInt(Integer::parseInt)
-                                .toArray();
-            */
-            
-            reader.close();
-            
-            // Call your solution method
-            // Type result = solve(parameters);
-            
-            // Create output directory if it doesn't exist
-            File outputDir = new File("./myOutputs");
-            if (!outputDir.exists()) {
-                outputDir.mkdirs();
-            }
-            
-            // Write output
-            String outputPath = "./myOutputs/Myoutput_" + testNumber + ".txt";
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath));
-            
-            /* Example for writing result:
-            writer.write(String.valueOf(result));
-            // Or for array:
-            writer.write(Arrays.stream(result)
-                              .mapToObj(String::valueOf)
-                              .collect(Collectors.joining(" ")));
-            */
-            
-            writer.close();
-            
-        } catch (IOException e) {
-            System.err.println("Error processing test case " + testNumber + ": " + e.getMessage());
-        }
-    }
-    
-    public static void main(String[] args) {
-        File testCasesDir = new File("./test_cases");
-        if (!testCasesDir.exists() || !testCasesDir.isDirectory()) {
-            System.err.println("test_cases directory not found");
-            return;
-        }
-        
-        File[] inputFiles = testCasesDir.listFiles((dir, name) -> name.startsWith("input_"));
-        if (inputFiles == null) {
-            System.err.println("Error reading test cases");
-            return;
-        }
-        
-        Arrays.sort(inputFiles);
-        for (File inputFile : inputFiles) {
-            String fileName = inputFile.getName();
-            int testNumber = Integer.parseInt(fileName.substring(6, fileName.length() - 4));
-            runTestCase(testNumber);
-        }
-    }
-}`,
-    },
     // JavaScript Configuration
     javascript: {
         extension: 'js',
@@ -298,39 +190,59 @@ public class Solution {
 const path = require('path');
 
 // Your solution code goes here
+// Example:
+// function twoSum(nums, target) {
+//     return [];
+// }
 
-function runTestCase(testNumber) {
+function readTestCase(testNumber) {
     const inputPath = path.join('./test_cases', \`input_\${testNumber}.txt\`);
     
     try {
         // Read input
         const input = fs.readFileSync(inputPath, 'utf8').trim();
         
-        /* Example for parsing numbers:
+        // Parse numbers from space-separated string
         const numbers = input.split(/\\s+/).map(Number);
-        */
-        
-        // Call your solution method
-        // const result = solve(parameters);
-        
-        // Create output directory if it doesn't exist
-        const outputDir = './myOutputs';
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir);
-        }
-        
-        // Write output
-        const outputPath = path.join(outputDir, \`Myoutput_\${testNumber}.txt\`);
-        
-        /* Example for writing result:
-        fs.writeFileSync(outputPath, String(result));
-        // Or for array:
-        fs.writeFileSync(outputPath, result.join(' '));
-        */
+        return numbers;
         
     } catch (error) {
-        console.error(\`Error processing test case \${testNumber}: \${error.message}\`);
+        console.error(\`Error reading test case \${testNumber}: \${error.message}\`);
+        return null;
     }
+}
+
+function writeOutput(testNumber, result) {
+    const outputDir = './myOutputs';
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir);
+    }
+    
+    const outputPath = path.join(outputDir, \`Myoutput_\${testNumber}.txt\`);
+    
+    try {
+        // Convert result to space-separated string if it's an array
+        const output = Array.isArray(result) ? result.join(' ') : String(result);
+        fs.writeFileSync(outputPath, output);
+    } catch (error) {
+        console.error(\`Error writing output for test case \${testNumber}: \${error.message}\`);
+    }
+}
+
+function runTestCase(testNumber) {
+    const numbers = readTestCase(testNumber);
+    if (!numbers) return;
+
+    // Get the last number as target (for two sum problem)
+    const target = numbers[numbers.length - 1];
+    const nums = numbers.slice(0, -1);
+
+    // Call your solution function here
+    // Example for two sum:
+    // const result = twoSum(nums, target);
+    const result = [];  // Replace this with your actual solution call
+    
+    writeOutput(testNumber, result);
 }
 
 function main() {
@@ -340,25 +252,44 @@ function main() {
         return;
     }
     
+    // Get all input files and sort them
     const inputFiles = fs.readdirSync(testCasesDir)
         .filter(file => file.startsWith('input_'))
-        .sort();
+        .sort((a, b) => {
+            const numA = parseInt(a.match(/input_(\d+)\.txt/)[1]);
+            const numB = parseInt(b.match(/input_(\d+)\.txt/)[1]);
+            return numA - numB;
+        });
     
     for (const inputFile of inputFiles) {
-        const testNumber = inputFile.match(/input_(\d+)\.txt/)[1];
-        runTestCase(testNumber);
+        const match = inputFile.match(/input_(\d+)\.txt/);
+        if (match) {
+            const testNumber = match[1];
+            runTestCase(testNumber);
+        }
     }
 }
 
 main();`,
     },
 };
+// Helper function to get language from file extension
+function getLanguageFromExtension(extension) {
+    const language = EXTENSION_TO_LANGUAGE[extension];
+    if (!language) {
+        throw new Error(`Unsupported file extension: ${extension}`);
+    }
+    return language;
+}
 // Helper function to validate language support
 function isLanguageSupported(language) {
     return language in exports.LANGUAGE_BOILERPLATES;
 }
-// Helper function to get language configuration
 function getLanguageConfig(language) {
+    // If we get an extension instead of a language name, convert it
+    if (language in EXTENSION_TO_LANGUAGE) {
+        language = EXTENSION_TO_LANGUAGE[language];
+    }
     if (!isLanguageSupported(language)) {
         throw new Error(`Unsupported language: ${language}`);
     }
