@@ -1,15 +1,29 @@
 import * as path from 'path'
 
-export interface LanguageConfig {
-  extension: string
-  getLangSlug: () => string
-  compile: boolean
-  compileCommand?: (filepath: string) => string
-  runCommand: (filepath: string) => string
-  template: string
+
+// Interface defining the configuration required for each supported programming language
+interface LanguageConfig {
+  extension: string                             // File extension for the language
+  getLangSlug: () => string                     // Function to get language identifier for LeetCode API
+  compile: boolean                              // Whether the language needs compilation
+  compileCommand?: (filepath: string) => string // Command to compile the code
+  runCommand: (filepath: string) => string      // Command to execute the code
+  template: string                              // Boilerplate code template
 }
 
+
+/**
+ * Configuration for all supported programming languages
+ * Each language defines:
+ * - File extension
+ * - Language identifier
+ * - Compilation requirements
+ * - Execution commands
+ * - Code template with test case handling
+ */
+
 export const LANGUAGE_BOILERPLATES: Record<string, LanguageConfig> = {
+  // C++ Configuration
   cpp: {
     extension: 'cpp',
     getLangSlug: () => 'cpp',
@@ -95,6 +109,7 @@ int main() {
     return 0;
 }`,
   },
+  // Python Configuration
   python: {
     extension: 'py',
     getLangSlug: () => 'python',
@@ -166,6 +181,7 @@ def main():
 if __name__ == "__main__":
     main()`,
   },
+  // Java Configuration
   java: {
     extension: 'java',
     getLangSlug: () => 'java',
@@ -246,6 +262,7 @@ public class Solution {
     }
 }`,
   },
+  // JavaScript Configuration
   javascript: {
     extension: 'js',
     getLangSlug: () => 'javascript',

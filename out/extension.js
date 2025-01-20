@@ -35,22 +35,29 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
+// Import necessary modules from VS Code API and Node.js
 const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
+const fs = __importStar(require("fs"));
+// Import helper functions and constants from other files
 const fetchQuestion_1 = require("./fetchQuestion");
 const languageConfig_1 = require("./languageConfig");
 const runTestCases_1 = require("./runTestCases");
+const runTestCases_2 = require("./runTestCases");
+// This method is called when the extension is activated
 function activate(context) {
     console.log('LeetCode Helper is now active!');
+    // Register the command to fetch a LeetCode problem
     let fetchProblem = vscode.commands.registerCommand('CPH.fetchProblem', async () => {
         try {
+            // Prompt the user to enter the LeetCode problem slug
             const titleSlug = await vscode.window.showInputBox({
                 prompt: 'Enter the LeetCode problem slug',
             });
             if (!titleSlug) {
                 throw new Error('No problem slug provided');
             }
-            // Language selection
+            // Prompt the user to select a programming language
             const selectedLanguage = await vscode.window.showQuickPick(Object.keys(languageConfig_1.LANGUAGE_BOILERPLATES), {
                 placeHolder: 'Select programming language',
             });
@@ -58,13 +65,30 @@ function activate(context) {
                 throw new Error('No language selected');
             }
             vscode.window.showInformationMessage(`Fetching problem: ${titleSlug}`);
+            // Fetch the problem data from LeetCode
             const data = await (0, fetchQuestion_1.fetchLeetCodeQuestion)(titleSlug);
+            if (!data || !data.question || !data.question.content) {
+                throw new Error(`Failed to fetch problem data for ${titleSlug}. Please check if the problem slug is correct.`);
+            }
             const workspaceFolders = vscode.workspace.workspaceFolders;
             if (!workspaceFolders) {
                 throw new Error('No workspace folder open');
             }
             // Create problem directory
             const problemPath = path.join(workspaceFolders[0].uri.fsPath, titleSlug);
+            // Check if the problem directory already exists
+            const directoryExists = fs.existsSync(problemPath);
+            if (directoryExists) {
+                const overwrite = await vscode.window.showQuickPick(['Yes', 'No'], {
+                    placeHolder: `The directory '${titleSlug}' already exists. Do you want to overwrite it?`,
+                });
+                if (overwrite === 'No') {
+                    vscode.window.showInformationMessage('Skipping fetch of the problem.');
+                    return; // Skip fetching if the user chooses not to overwrite
+                }
+                // If user chooses to overwrite, remove the existing directory
+                fs.rmSync(problemPath, { recursive: true, force: true });
+            }
             (0, fetchQuestion_1.ensureDirectoryExists)(problemPath);
             // Save test cases
             const testCasesPath = path.join(problemPath, 'test_cases');
@@ -85,7 +109,13 @@ function activate(context) {
             }
         }
     });
+    // Register the command to run all test cases
+    let runTestCases = vscode.commands.registerCommand('CPH.runTestCases', async () => {
+        await (0, runTestCases_2.runAllTestCases)(context);
+    });
+    // Add the commands to the extension's subscriptions
     context.subscriptions.push(fetchProblem);
 }
+// This method is called when the extension is deactivated
 function deactivate() { }
 //# sourceMappingURL=extension.js.map

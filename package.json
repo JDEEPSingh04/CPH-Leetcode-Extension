@@ -16,6 +16,10 @@
       {
         "command": "CPH.fetchProblem",
         "title": "CPH: Fetch Test Cases"
+      },
+      {
+        "command": "CPH.runTestCases",
+        "title": "CPH: Run Test Cases"
       }
     ]
   },

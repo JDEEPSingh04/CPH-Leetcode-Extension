@@ -40,7 +40,17 @@ exports.getFileExtension = getFileExtension;
 exports.getCompileCommand = getCompileCommand;
 exports.getRunCommand = getRunCommand;
 const path = __importStar(require("path"));
+/**
+ * Configuration for all supported programming languages
+ * Each language defines:
+ * - File extension
+ * - Language identifier
+ * - Compilation requirements
+ * - Execution commands
+ * - Code template with test case handling
+ */
 exports.LANGUAGE_BOILERPLATES = {
+    // C++ Configuration
     cpp: {
         extension: 'cpp',
         getLangSlug: () => 'cpp',
@@ -125,6 +135,7 @@ int main() {
     return 0;
 }`,
     },
+    // Python Configuration
     python: {
         extension: 'py',
         getLangSlug: () => 'python',
@@ -196,6 +207,7 @@ def main():
 if __name__ == "__main__":
     main()`,
     },
+    // Java Configuration
     java: {
         extension: 'java',
         getLangSlug: () => 'java',
@@ -275,6 +287,7 @@ public class Solution {
     }
 }`,
     },
+    // JavaScript Configuration
     javascript: {
         extension: 'js',
         getLangSlug: () => 'javascript',
