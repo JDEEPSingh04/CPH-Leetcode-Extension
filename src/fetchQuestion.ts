@@ -1,4 +1,5 @@
-import axios from 'axios'
+// Import necessary modules from VS Code API and Node.js
+import axios from 'axios'  // Axios is used to make HTTP requests
 import * as fs from 'fs'
 import * as path from 'path'
 

@@ -44,6 +44,7 @@ const fetchQuestion_1 = require("./fetchQuestion");
 const languageConfig_1 = require("./languageConfig");
 const runTestCases_1 = require("./runTestCases");
 const runTestCases_2 = require("./runTestCases");
+const addTestCase_1 = require("./addTestCase");
 // This method is called when the extension is activated
 function activate(context) {
     console.log('LeetCode Helper is now active!');
@@ -112,6 +113,9 @@ function activate(context) {
     // Register the command to run all test cases
     let runTestCases = vscode.commands.registerCommand('CPH.runTestCases', async () => {
         await (0, runTestCases_2.runAllTestCases)(context);
+    });
+    let addTestCaseCommand = vscode.commands.registerCommand('CPH.addTestCase', async () => {
+        await (0, addTestCase_1.addTestCase)(context);
     });
     // Add the commands to the extension's subscriptions
     context.subscriptions.push(fetchProblem);

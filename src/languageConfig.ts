@@ -1,16 +1,15 @@
+// Import necessary modules from VS Code API and Node.js
 import * as path from 'path'
-
 
 // Interface defining the configuration required for each supported programming language
 interface LanguageConfig {
-  extension: string                             // File extension for the language
-  getLangSlug: () => string                     // Function to get language identifier for LeetCode API
-  compile: boolean                              // Whether the language needs compilation
+  extension: string // File extension for the language
+  getLangSlug: () => string // Function to get language identifier for LeetCode API
+  compile: boolean // Whether the language needs compilation
   compileCommand?: (filepath: string) => string // Command to compile the code
-  runCommand: (filepath: string) => string      // Command to execute the code
-  template: string                              // Boilerplate code template
+  runCommand: (filepath: string) => string // Command to execute the code
+  template: string // Boilerplate code template
 }
-
 
 /**
  * Configuration for all supported programming languages

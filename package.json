@@ -20,6 +20,10 @@
       {
         "command": "CPH.runTestCases",
         "title": "CPH: Run Test Cases"
+      },
+      {
+        "command": "CPH.addTestCase",
+        "title": "CPH: Add Test Case"
       }
     ]
   },

@@ -39,6 +39,7 @@ exports.getLanguageConfig = getLanguageConfig;
 exports.getFileExtension = getFileExtension;
 exports.getCompileCommand = getCompileCommand;
 exports.getRunCommand = getRunCommand;
+// Import necessary modules from VS Code API and Node.js
 const path = __importStar(require("path"));
 /**
  * Configuration for all supported programming languages

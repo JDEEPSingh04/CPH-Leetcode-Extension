@@ -13,6 +13,7 @@ import {
 import { LANGUAGE_BOILERPLATES } from './languageConfig'
 import { createSolutionFile } from './runTestCases'
 import { runAllTestCases } from './runTestCases'
+import { addTestCase } from './addTestCase'
 
 // This method is called when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -117,6 +118,13 @@ export function activate(context: vscode.ExtensionContext) {
     'CPH.runTestCases',
     async () => {
       await runAllTestCases(context)
+    }
+  )
+
+  let addTestCaseCommand = vscode.commands.registerCommand(
+    'CPH.addTestCase',
+    async () => {
+      await addTestCase(context)
     }
   )
 

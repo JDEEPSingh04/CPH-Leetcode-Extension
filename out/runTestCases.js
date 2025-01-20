@@ -35,11 +35,13 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSolutionFile = createSolutionFile;
 exports.runAllTestCases = runAllTestCases;
+// Import necessary modules from VS Code API and Node.js
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const vscode = __importStar(require("vscode"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
+// Import helper functions and constants from other files
 const languageConfig_1 = require("./languageConfig");
 // Convert exec to promise-based function
 const execAsync = (0, util_1.promisify)(child_process_1.exec);

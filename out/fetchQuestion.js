@@ -40,7 +40,8 @@ exports.fetchLeetCodeQuestion = fetchLeetCodeQuestion;
 exports.saveTestCases = saveTestCases;
 exports.extractExamplesFromGraphQL = extractExamplesFromGraphQL;
 exports.ensureDirectoryExists = ensureDirectoryExists;
-const axios_1 = __importDefault(require("axios"));
+// Import necessary modules from VS Code API and Node.js
+const axios_1 = __importDefault(require("axios")); // Axios is used to make HTTP requests
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 async function fetchLeetCodeQuestion(titleSlug) {
