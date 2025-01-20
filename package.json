@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "LH.fetchProblem",
-        "title": "fetchProblem"
+        "command": "CPH.fetchProblem",
+        "title": "CPH: Fetch Test Cases"
       }
     ]
   },
@@ -39,6 +39,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "axios": "^1.7.9"
+    "axios": "^1.7.9",
+    "fs": "^0.0.1-security"
   }
 }
