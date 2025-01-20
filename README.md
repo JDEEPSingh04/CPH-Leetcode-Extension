@@ -2,9 +2,23 @@
 
 A powerful VSCode extension designed to streamline your LeetCode problem-solving workflow by automating test case management and providing an integrated development environment.
 
+## Table of Contents
+
+- [Features](#features)
+- [Implementation Overview](#implementation-overview)
+- [Key Components](#key-components)
+- [Known Issues](#known-issues)
+- [Technical Challanges and Solutions](#technical-challanges-and-solutions)
+- [Future Improvements](#future-improvements)
+- [Installation](#installation)
+- [Commands](#commands)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Requirements](#requirements)
+
 ## Features
 
 ### 1. Problem Fetching
+
 - Automatically fetch problems from LeetCode using the problem slug
 - Support for multiple programming languages (C++, Python, JavaScript)
 - Creates a structured project directory with:
@@ -13,12 +27,14 @@ A powerful VSCode extension designed to streamline your LeetCode problem-solving
   - Organized output directory for test results
 
 ### 2. Test Case Management
+
 - Automatically extracts and saves example test cases from LeetCode problems
 - Supports adding custom test cases through a simple interface
 - Maintains separate directories for input and output test cases
 - Automatically numbers and organizes test cases
 
 ### 3. Test Execution
+
 - One-click test execution for all test cases
 - Supports compilation and execution for multiple languages
 - Real-time test results with detailed output
@@ -26,6 +42,7 @@ A powerful VSCode extension designed to streamline your LeetCode problem-solving
 - Comprehensive error reporting
 
 ### 4. User Interface
+
 - Integrated sidebar with easy access to all commands
 - Keyboard shortcuts for common operations
 - Progress notifications during operations
@@ -33,12 +50,12 @@ A powerful VSCode extension designed to streamline your LeetCode problem-solving
 - Clean and intuitive command interface
 
 ![LeetCode Helper Interface](./resources/image.png)
-*LeetCode Helper extension showing solution.cpp file with test results output and sidebar commands*
-
+_LeetCode Helper extension showing solution.cpp file with test results output and sidebar commands_
 
 ## Implementation Overview
 
 ### Architecture
+
 - Written in TypeScript for type safety and better maintainability
 - Modular design with clear separation of concerns:
   - `extension.ts`: Main extension activation and command registration
@@ -51,16 +68,19 @@ A powerful VSCode extension designed to streamline your LeetCode problem-solving
 ### Key Components
 
 1. **Problem Fetcher**
+
    - Uses GraphQL API and axios to fetch problems from LeetCode
    - Extracts example test cases using regex
    - Creates structured directories and files
 
 2. **Language Support**
+
    - Configurable language templates
    - Compile and run command management
    - Extension to language mapping
 
 3. **Test Runner**
+
    - Asynchronous execution of test cases
    - Support for compiled and interpreted languages
    - Detailed result comparison and reporting
@@ -73,14 +93,17 @@ A powerful VSCode extension designed to streamline your LeetCode problem-solving
 ## Technical Challenges and Solutions
 
 1. **Test Case Parsing**
+
    - Challenge: Extracting test cases from HTML content
-   - Solution: Robust regex patterns with HTML entity handling
+   - Separate parsing for each type of inputs and outputs
 
 2. **Multi-language Support**
+
    - Challenge: Different compilation and execution requirements
    - Solution: Configurable language templates with standardized interface
 
 3. **File Path Handling**
+
    - Challenge: Spaces and special characters in paths
    - Solution: Path wrapping and proper escaping
 
@@ -91,17 +114,20 @@ A powerful VSCode extension designed to streamline your LeetCode problem-solving
 ## Future Improvements
 
 1. **Enhanced Language Support**
+
    - Add support for more programming languages
    - Implement language-specific optimizations
    - Add custom template support
 
 2. **Advanced Test Features**
+
    - Performance metrics for solutions
    - Memory usage tracking
    - Time complexity analysis
    - Test case generation using AI
 
 3. **UI Enhancements**
+
    - Interactive test case editor
    - Visual test result display
    - Problem description preview
