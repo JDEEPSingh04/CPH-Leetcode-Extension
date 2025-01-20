@@ -2,24 +2,6 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { getLanguageConfig } from './languageConfig'
 
-export interface BoilerplateCode {
-  [key: string]: {
-    extension: string
-    getLangSlug: () => string
-  }
-}
-
-export const LANGUAGE_BOILERPLATES: BoilerplateCode = {
-  cpp: {
-    extension: 'cpp',
-    getLangSlug: () => 'cpp',
-  },
-  python: {
-    extension: 'py',
-    getLangSlug: () => 'python',
-  },
-}
-
 export async function createSolutionFile(
   titleSlug: string,
   language: string,

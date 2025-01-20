@@ -38,6 +38,7 @@ exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
 const fetchQuestion_1 = require("./fetchQuestion");
+const languageConfig_1 = require("./languageConfig");
 const runTestCases_1 = require("./runTestCases");
 function activate(context) {
     console.log('LeetCode Helper is now active!');
@@ -50,7 +51,7 @@ function activate(context) {
                 throw new Error('No problem slug provided');
             }
             // Language selection
-            const selectedLanguage = await vscode.window.showQuickPick(Object.keys(runTestCases_1.LANGUAGE_BOILERPLATES), {
+            const selectedLanguage = await vscode.window.showQuickPick(Object.keys(languageConfig_1.LANGUAGE_BOILERPLATES), {
                 placeHolder: 'Select programming language',
             });
             if (!selectedLanguage) {
@@ -74,7 +75,7 @@ function activate(context) {
             await (0, runTestCases_1.createSolutionFile)(titleSlug, selectedLanguage, problemPath);
             vscode.window.showInformationMessage(`Problem setup completed successfully! Check the '${titleSlug}' directory.`);
             // Open the solution file
-            const solutionFile = path.join(problemPath, `solution.${runTestCases_1.LANGUAGE_BOILERPLATES[selectedLanguage].extension}`);
+            const solutionFile = path.join(problemPath, `solution.${languageConfig_1.LANGUAGE_BOILERPLATES[selectedLanguage].extension}`);
             const document = await vscode.workspace.openTextDocument(solutionFile);
             await vscode.window.showTextDocument(document);
         }

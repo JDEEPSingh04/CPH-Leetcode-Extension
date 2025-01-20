@@ -33,21 +33,10 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LANGUAGE_BOILERPLATES = void 0;
 exports.createSolutionFile = createSolutionFile;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const languageConfig_1 = require("./languageConfig");
-exports.LANGUAGE_BOILERPLATES = {
-    cpp: {
-        extension: 'cpp',
-        getLangSlug: () => 'cpp',
-    },
-    python: {
-        extension: 'py',
-        getLangSlug: () => 'python',
-    },
-};
 async function createSolutionFile(titleSlug, language, problemPath) {
     try {
         const { extension, template } = (0, languageConfig_1.getLanguageConfig)(language);

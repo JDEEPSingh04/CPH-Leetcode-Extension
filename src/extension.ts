@@ -6,7 +6,8 @@ import {
   ensureDirectoryExists,
   extractExamplesFromGraphQL,
 } from './fetchQuestion'
-import { createSolutionFile, LANGUAGE_BOILERPLATES } from './runTestCases'
+import { LANGUAGE_BOILERPLATES } from './languageConfig'
+import { createSolutionFile } from './runTestCases'
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('LeetCode Helper is now active!')
