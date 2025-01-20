@@ -1,7 +1,8 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-import axios from 'axios'
+import { getLanguageConfig } from './languageConfig'
+import { fetchLeetCodeQuestion } from './fetchQuestion'
 
 interface LeetCodeExample {
   input: number[]
@@ -16,70 +17,14 @@ interface BoilerplateCode {
 }
 
 const LANGUAGE_BOILERPLATES: BoilerplateCode = {
-  'C++': {
+  cpp: {
     extension: 'cpp',
     getLangSlug: () => 'cpp',
   },
-}
-
-async function fetchCodeSnippet(
-  titleSlug: string,
-  lang: string
-): Promise<string> {
-  const query = `
-    query questionData($titleSlug: String!) {
-      question(titleSlug: $titleSlug) {
-        codeSnippets {
-          lang
-          langSlug
-          code
-        }
-      }
-    }
-  `
-
-  const variables = {
-    titleSlug: titleSlug,
-  }
-
-  try {
-    const response = await axios.post(
-      'https://leetcode.com/graphql',
-      {
-        query,
-        variables,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'VSCode-LeetCode-Helper/1.0',
-        },
-      }
-    )
-
-    if (!response.data.data?.question?.codeSnippets) {
-      throw new Error('Failed to fetch code snippets from LeetCode')
-    }
-
-    const snippet = response.data.data.question.codeSnippets.find(
-      (s: { langSlug: string }) => s.langSlug === lang
-    )
-
-    if (!snippet) {
-      throw new Error(`No code snippet found for language: ${lang}`)
-    }
-
-    return snippet.code
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        `LeetCode API error: ${
-          error.response?.data?.errors?.[0]?.message || error.message
-        }`
-      )
-    }
-    throw error
-  }
+  python: {
+    extension: 'py',
+    getLangSlug: () => 'python',
+  },
 }
 
 async function createSolutionFile(
@@ -87,14 +32,29 @@ async function createSolutionFile(
   language: string,
   problemPath: string
 ): Promise<void> {
-  const { extension, getLangSlug } = LANGUAGE_BOILERPLATES[language]
-  const solutionFile = path.join(problemPath, `solution.${extension}`)
-
   try {
-    const codeSnippet = await fetchCodeSnippet(titleSlug, getLangSlug())
-    await fs.promises.writeFile(solutionFile, codeSnippet)
+    const { extension, template } = getLanguageConfig(language)
+    const solutionFile = path.join(problemPath, `solution.${extension}`)
+
+    // Check if solution file already exists
+    if (
+      await fs.promises
+        .access(solutionFile)
+        .then(() => true)
+        .catch(() => false)
+    ) {
+      throw new Error(`Solution file already exists: ${solutionFile}`)
+    }
+
+    // Create problem directory if it doesn't exist
+    await fs.promises.mkdir(problemPath, { recursive: true })
+
+    // Write the solution file with the template
+    await fs.promises.writeFile(solutionFile, template, 'utf8')
+
+    console.log(`Created solution file: ${solutionFile}`)
   } catch (error) {
-    console.error('Failed to fetch code snippet:', error)
+    console.error('There was an error creating solution file')
     throw error
   }
 }
@@ -111,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
         })
 
         if (!titleSlug) {
-          return
+          throw new Error('No problem slug provided')
         }
 
         // Language selection
@@ -123,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
         )
 
         if (!selectedLanguage) {
-          return
+          throw new Error('No language selected')
         }
 
         vscode.window.showInformationMessage(`Fetching problem: ${titleSlug}`)
@@ -169,45 +129,6 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   context.subscriptions.push(fetchProblem)
-}
-
-async function fetchLeetCodeQuestion(titleSlug: string) {
-  const query = `
-    query questionData($titleSlug: String!) {
-      question(titleSlug: $titleSlug) {
-        questionId
-        questionFrontendId
-        title
-        content
-        difficulty
-        exampleTestcases
-      }
-    }
-  `
-
-  const variables = {
-    titleSlug: titleSlug,
-  }
-
-  const response = await axios.post(
-    'https://leetcode.com/graphql',
-    {
-      query,
-      variables,
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'VSCode-LeetCode-Helper/1.0',
-      },
-    }
-  )
-
-  if (!response.data.data) {
-    throw new Error('Failed to fetch problem data')
-  }
-
-  return response.data.data
 }
 
 function extractExamplesFromGraphQL(content: string): LeetCodeExample[] {
@@ -303,12 +224,11 @@ async function saveTestCases(
   examples: LeetCodeExample[],
   testCasesPath: string
 ): Promise<void> {
-  const problemPath = path.join(testCasesPath, titleSlug)
-  ensureDirectoryExists(problemPath)
+  ensureDirectoryExists(testCasesPath)
 
   const writePromises = examples.map(async (example, index) => {
-    const inputPath = path.join(problemPath, `input_${index + 1}.txt`)
-    const outputPath = path.join(problemPath, `output_${index + 1}.txt`)
+    const inputPath = path.join(testCasesPath, `input_${index + 1}.txt`)
+    const outputPath = path.join(testCasesPath, `output_${index + 1}.txt`)
 
     // Convert arrays to space-separated numbers
     const inputString = example.input.join(' ')

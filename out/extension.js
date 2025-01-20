@@ -32,72 +32,43 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const axios_1 = __importDefault(require("axios"));
+const languageConfig_1 = require("./languageConfig");
+const fetchQuestion_1 = require("./fetchQuestion");
 const LANGUAGE_BOILERPLATES = {
-    'C++': {
+    cpp: {
         extension: 'cpp',
         getLangSlug: () => 'cpp',
     },
+    python: {
+        extension: 'py',
+        getLangSlug: () => 'python',
+    },
 };
-async function fetchCodeSnippet(titleSlug, lang) {
-    const query = `
-    query questionData($titleSlug: String!) {
-      question(titleSlug: $titleSlug) {
-        codeSnippets {
-          lang
-          langSlug
-          code
-        }
-      }
-    }
-  `;
-    const variables = {
-        titleSlug: titleSlug,
-    };
-    try {
-        const response = await axios_1.default.post('https://leetcode.com/graphql', {
-            query,
-            variables,
-        }, {
-            headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'VSCode-LeetCode-Helper/1.0',
-            },
-        });
-        if (!response.data.data?.question?.codeSnippets) {
-            throw new Error('Failed to fetch code snippets from LeetCode');
-        }
-        const snippet = response.data.data.question.codeSnippets.find((s) => s.langSlug === lang);
-        if (!snippet) {
-            throw new Error(`No code snippet found for language: ${lang}`);
-        }
-        return snippet.code;
-    }
-    catch (error) {
-        if (axios_1.default.isAxiosError(error)) {
-            throw new Error(`LeetCode API error: ${error.response?.data?.errors?.[0]?.message || error.message}`);
-        }
-        throw error;
-    }
-}
 async function createSolutionFile(titleSlug, language, problemPath) {
-    const { extension, getLangSlug } = LANGUAGE_BOILERPLATES[language];
-    const solutionFile = path.join(problemPath, `solution.${extension}`);
     try {
-        const codeSnippet = await fetchCodeSnippet(titleSlug, getLangSlug());
-        await fs.promises.writeFile(solutionFile, codeSnippet);
+        const { extension, template } = (0, languageConfig_1.getLanguageConfig)(language);
+        const solutionFile = path.join(problemPath, `solution.${extension}`);
+        // Check if solution file already exists
+        if (await fs.promises
+            .access(solutionFile)
+            .then(() => true)
+            .catch(() => false)) {
+            throw new Error(`Solution file already exists: ${solutionFile}`);
+        }
+        // Create problem directory if it doesn't exist
+        await fs.promises.mkdir(problemPath, { recursive: true });
+        // Write the solution file with the template
+        await fs.promises.writeFile(solutionFile, template, 'utf8');
+        console.log(`Created solution file: ${solutionFile}`);
     }
     catch (error) {
-        console.error('Failed to fetch code snippet:', error);
+        console.error('There was an error creating solution file');
         throw error;
     }
 }
@@ -109,17 +80,17 @@ function activate(context) {
                 prompt: 'Enter the LeetCode problem slug',
             });
             if (!titleSlug) {
-                return;
+                throw new Error('No problem slug provided');
             }
             // Language selection
             const selectedLanguage = await vscode.window.showQuickPick(Object.keys(LANGUAGE_BOILERPLATES), {
                 placeHolder: 'Select programming language',
             });
             if (!selectedLanguage) {
-                return;
+                throw new Error('No language selected');
             }
             vscode.window.showInformationMessage(`Fetching problem: ${titleSlug}`);
-            const data = await fetchLeetCodeQuestion(titleSlug);
+            const data = await (0, fetchQuestion_1.fetchLeetCodeQuestion)(titleSlug);
             const workspaceFolders = vscode.workspace.workspaceFolders;
             if (!workspaceFolders) {
                 throw new Error('No workspace folder open');
@@ -147,36 +118,6 @@ function activate(context) {
         }
     });
     context.subscriptions.push(fetchProblem);
-}
-async function fetchLeetCodeQuestion(titleSlug) {
-    const query = `
-    query questionData($titleSlug: String!) {
-      question(titleSlug: $titleSlug) {
-        questionId
-        questionFrontendId
-        title
-        content
-        difficulty
-        exampleTestcases
-      }
-    }
-  `;
-    const variables = {
-        titleSlug: titleSlug,
-    };
-    const response = await axios_1.default.post('https://leetcode.com/graphql', {
-        query,
-        variables,
-    }, {
-        headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'VSCode-LeetCode-Helper/1.0',
-        },
-    });
-    if (!response.data.data) {
-        throw new Error('Failed to fetch problem data');
-    }
-    return response.data.data;
 }
 function extractExamplesFromGraphQL(content) {
     const examples = [];
@@ -249,11 +190,10 @@ function ensureDirectoryExists(dirPath) {
     }
 }
 async function saveTestCases(titleSlug, examples, testCasesPath) {
-    const problemPath = path.join(testCasesPath, titleSlug);
-    ensureDirectoryExists(problemPath);
+    ensureDirectoryExists(testCasesPath);
     const writePromises = examples.map(async (example, index) => {
-        const inputPath = path.join(problemPath, `input_${index + 1}.txt`);
-        const outputPath = path.join(problemPath, `output_${index + 1}.txt`);
+        const inputPath = path.join(testCasesPath, `input_${index + 1}.txt`);
+        const outputPath = path.join(testCasesPath, `output_${index + 1}.txt`);
         // Convert arrays to space-separated numbers
         const inputString = example.input.join(' ');
         const outputString = example.output.join(' ');
