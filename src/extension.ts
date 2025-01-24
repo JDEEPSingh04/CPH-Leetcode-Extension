@@ -16,7 +16,6 @@ import { createSolutionFile } from './runTestCases'
 import { runAllTestCases } from './runTestCases'
 import { addTestCase } from './addTestCase'
 import { SidebarProvider } from './SidebarProvider'
-import { title } from 'process'
 
 // This method is called when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
