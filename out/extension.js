@@ -53,11 +53,11 @@ function activate(context) {
     let fetchProblem = vscode.commands.registerCommand('CPH.fetchProblem', async () => {
         try {
             // Prompt the user to enter the LeetCode problem slug
-            const titleSlug = await vscode.window.showInputBox({
-                prompt: 'Enter the LeetCode problem slug',
+            const url = await vscode.window.showInputBox({
+                prompt: 'Enter the URL of the LeetCode problem',
             });
-            if (!titleSlug) {
-                throw new Error('No problem slug provided');
+            if (!url) {
+                throw new Error('No URL provided');
             }
             // Prompt the user to select a programming language
             const selectedLanguage = await vscode.window.showQuickPick(Object.keys(languageConfig_1.LANGUAGE_BOILERPLATES), {
@@ -66,16 +66,18 @@ function activate(context) {
             if (!selectedLanguage) {
                 throw new Error('No language selected');
             }
-            vscode.window.showInformationMessage(`Fetching problem: ${titleSlug}`);
+            vscode.window.showInformationMessage(`Fetching problem data...`);
             // Fetch the problem data from LeetCode
-            const data = await (0, fetchQuestion_1.fetchLeetCodeQuestion)(titleSlug);
+            const data = await (0, fetchQuestion_1.fetchLeetCodeQuestion)(url);
             if (!data || !data.question || !data.question.content) {
-                throw new Error(`Failed to fetch problem data for ${titleSlug}. Please check if the problem slug is correct.`);
+                throw new Error(`Failed to fetch problem data. Please check if the problem url is correct.`);
             }
             const workspaceFolders = vscode.workspace.workspaceFolders;
             if (!workspaceFolders) {
                 throw new Error('No workspace folder open');
             }
+            // Extract the problem slug from the URL
+            const titleSlug = (0, fetchQuestion_1.extractSlugFromUrl)(url);
             // Create problem directory
             const problemPath = path.join(workspaceFolders[0].uri.fsPath, titleSlug);
             // Check if the problem directory already exists

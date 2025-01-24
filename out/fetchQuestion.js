@@ -36,6 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.extractSlugFromUrl = extractSlugFromUrl;
 exports.fetchLeetCodeQuestion = fetchLeetCodeQuestion;
 exports.saveTestCases = saveTestCases;
 exports.extractExamplesFromGraphQL = extractExamplesFromGraphQL;
@@ -44,7 +45,16 @@ exports.ensureDirectoryExists = ensureDirectoryExists;
 const axios_1 = __importDefault(require("axios")); // Axios is used to make HTTP requests
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-async function fetchLeetCodeQuestion(titleSlug) {
+// Get the problem slug from the URL
+function extractSlugFromUrl(url) {
+    const match = url.match(/leetcode\.com\/problems\/([^\/]+)/);
+    if (!match) {
+        throw new Error('Invalid LeetCode problem URL');
+    }
+    return match[1];
+}
+async function fetchLeetCodeQuestion(url) {
+    const titleSlug = extractSlugFromUrl(url);
     const query = `
     query questionData($titleSlug: String!) {
       question(titleSlug: $titleSlug) {

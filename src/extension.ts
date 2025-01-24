@@ -9,12 +9,14 @@ import {
   saveTestCases,
   ensureDirectoryExists,
   extractExamplesFromGraphQL,
+  extractSlugFromUrl,
 } from './fetchQuestion'
 import { LANGUAGE_BOILERPLATES } from './languageConfig'
 import { createSolutionFile } from './runTestCases'
 import { runAllTestCases } from './runTestCases'
 import { addTestCase } from './addTestCase'
 import { SidebarProvider } from './SidebarProvider'
+import { title } from 'process'
 
 // This method is called when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -26,12 +28,12 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       try {
         // Prompt the user to enter the LeetCode problem slug
-        const titleSlug = await vscode.window.showInputBox({
-          prompt: 'Enter the LeetCode problem slug',
+        const url = await vscode.window.showInputBox({
+          prompt: 'Enter the URL of the LeetCode problem',
         })
 
-        if (!titleSlug) {
-          throw new Error('No problem slug provided')
+        if (!url) {
+          throw new Error('No URL provided')
         }
 
         // Prompt the user to select a programming language
@@ -46,14 +48,14 @@ export function activate(context: vscode.ExtensionContext) {
           throw new Error('No language selected')
         }
 
-        vscode.window.showInformationMessage(`Fetching problem: ${titleSlug}`)
+        vscode.window.showInformationMessage(`Fetching problem data...`)
 
         // Fetch the problem data from LeetCode
-        const data = await fetchLeetCodeQuestion(titleSlug)
+        const data = await fetchLeetCodeQuestion(url)
 
         if (!data || !data.question || !data.question.content) {
           throw new Error(
-            `Failed to fetch problem data for ${titleSlug}. Please check if the problem slug is correct.`
+            `Failed to fetch problem data. Please check if the problem url is correct.`
           )
         }
 
@@ -61,6 +63,9 @@ export function activate(context: vscode.ExtensionContext) {
         if (!workspaceFolders) {
           throw new Error('No workspace folder open')
         }
+
+        // Extract the problem slug from the URL
+        const titleSlug = extractSlugFromUrl(url)
 
         // Create problem directory
         const problemPath = path.join(workspaceFolders[0].uri.fsPath, titleSlug)

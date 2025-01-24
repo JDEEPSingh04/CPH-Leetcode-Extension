@@ -9,7 +9,17 @@ export interface LeetCodeExample {
   output: number[] // Array of expected output numbers
 }
 
-export async function fetchLeetCodeQuestion(titleSlug: string) {
+// Get the problem slug from the URL
+export function extractSlugFromUrl(url: string): string {
+  const match = url.match(/leetcode\.com\/problems\/([^\/]+)/)
+  if (!match) {
+    throw new Error('Invalid LeetCode problem URL')
+  }
+  return match[1]
+}
+
+export async function fetchLeetCodeQuestion(url: string) {
+  const titleSlug = extractSlugFromUrl(url)
   const query = `
     query questionData($titleSlug: String!) {
       question(titleSlug: $titleSlug) {
