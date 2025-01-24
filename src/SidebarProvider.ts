@@ -69,7 +69,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <i class="codicon codicon-cloud-download"></i> Fetch Problem
           </button>
           <button class="command-button" onclick="runTests()">
-            <i class="codicon codicon-play"></i> Run Tests
+            <i class="codicon codicon-play"></i> Run Test Cases
           </button>
           <button class="command-button" onclick="addTest()">
             <i class="codicon codicon-add"></i> Add Test Case
